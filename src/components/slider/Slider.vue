@@ -1,16 +1,21 @@
 <template>
   <section id="featured">
-    <div class="featured-container" :style="{ width: `${width}px`, height: `${height}px`}">
-      <div class="featured-slides" :style="transitionClasses" @mouseover="isPaused = true" @mouseout="isPaused = false">
-        <slide v-for="(slide, i) in featured" :key="i" :slide="slide" :height="height" :width="width"></slide>
-      </div>
+    <div class="featured-container" ref="slider" :style="{ 'width': `${width}px`, height: `${height}px`}">
+      <transition-group  tag="div" class="featured-slides" name="fade">
+        <slide v-for="(slide, i) in featured" :key="i" 
+        :slide="slide" :height="height" 
+        :width="width"
+        @mouseover.native="isPaused = true" 
+        @mouseout.native="isPaused = false" 
+        v-show="currentSlideIndex === i"></slide>
+      </transition-group>
       <div class="progress-bar">
         <div class="progress" :style="{ width: progress + '%'}"></div>
       </div>
     </div>
     <div class="slide-controls">
-        <button class="prev" :disabled="isFirstSlide" @click="prev"></button>
-        <button class="next" :disabled="isLastSlide" @click="next"></button>
+        <button class="prev" :disabled="isFirstSlide" @click="prev">&#60;</button>
+        <button class="next" :disabled="isLastSlide" @click="next">&#62;</button>
         <div class="pips">
           <button class="pip" 
           v-for="(n, i) in featured" 
@@ -58,8 +63,6 @@ export default {
     return {
       featured: [],
       currentSlideIndex: 0,
-      x: 0,
-      transitionDuration: this.speed,
       progress: 0,
       isPaused: false,
       timer: null
@@ -76,13 +79,6 @@ export default {
   },
 
   computed: {
-    transitionClasses() {
-      return {
-        "transition-duration": `${this.transitionDuration}ms`,
-        "transition-timing-function": "cubic-bezier(0.445, 0.05, 0.55, 0.95)",
-        transform: `translate3d(${this.x}px, 0, 0)`
-      };
-    },
     isFirstSlide() {
       return this.currentSlideIndex === 0;
     },
@@ -116,10 +112,8 @@ export default {
             if (this.progress >= 100) {
               if (!this.isLastSlide) {
                 this.currentSlideIndex++;
-                // this.move(this.currentSlideIndex);
               } else {
                 this.currentSlideIndex = 0;
-                // this.move(this.currentSlideIndex);
               }
             }
           }, this.duration / 100);
@@ -146,22 +140,18 @@ export default {
     next() {
       if (this.isLastSlide) return;
       this.currentSlideIndex++;
-      // this.move(this.currentSlideIndex);
     },
 
     prev() {
       if (this.isFirstSlide) return;
       this.currentSlideIndex--;
-      // this.move(this.currentSlideIndex);
     },
 
     goTo(n) {
       this.currentSlideIndex = n;
-      // this.move(this.currentSlideIndex);
     },
 
     move(i) {
-      this.x = -Math.abs(i * this.width);
       if (this.timer) {
         this.resetTimer();
       }
@@ -182,6 +172,9 @@ export default {
     background-color: rgba(0, 0, 0, 0.7);
     top: 35%;
     border: none;
+    font-size: 175%;
+    font-weight: 700;
+    color: #cacaca;
     &:focus {
       outline: none;
     }
@@ -226,7 +219,7 @@ export default {
       position: relative;
       .slide {
         position: absolute;
-        z-index: 1000;
+        /* z-index: 1000; */
       }
     }
     .progress-bar {
@@ -236,12 +229,39 @@ export default {
       width: 100%;
       height: 3px;
       background-color: #555;
+      z-index: 1000;
       .progress {
         width: inherit;
         height: inherit;
         background-color: red;
       }
     }
+  }
+}
+
+.fade-enter-active {
+  animation: fadeIn 600ms ease-in forwards;
+}
+
+.fade-leave-to {
+  animation: fadeOut 600ms ease-in forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }
 </style>
